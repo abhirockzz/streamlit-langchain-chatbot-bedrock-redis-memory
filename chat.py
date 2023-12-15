@@ -12,7 +12,11 @@ prompt = PromptTemplate(
     input_variables=["chat_history", "human_input"], template=template
 )
 
-redis_chat_memory = RedisChatMessageHistory(session_id="42")
+import os
+
+redis_conn_string = os.environ.get("REDIS_CONN_STRING")
+
+redis_chat_memory = RedisChatMessageHistory(url=redis_conn_string,session_id="42")
 memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=redis_chat_memory, ai_prefix="\n\nAssistant", human_prefix="\n\nHuman")
 
 st.title("Echo Bot")
