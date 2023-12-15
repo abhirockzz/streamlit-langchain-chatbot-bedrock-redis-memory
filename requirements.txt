@@ -1,0 +1,4 @@
+streamlit
+langchain
+redis
+boto3
