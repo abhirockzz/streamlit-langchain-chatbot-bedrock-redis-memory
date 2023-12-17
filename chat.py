@@ -22,7 +22,7 @@ memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=redis_c
 st.title("Echo Bot")
 
 llm = Bedrock(
-        credentials_profile_name="default",
+        #credentials_profile_name="default",
         model_id="anthropic.claude-v2",
         streaming=True,
     )
