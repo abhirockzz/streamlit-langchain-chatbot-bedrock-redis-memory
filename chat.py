@@ -1,6 +1,8 @@
 import streamlit as st
-from langchain.llms import Bedrock
+import os
+import uuid
 
+from langchain.llms import Bedrock
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
@@ -12,17 +14,19 @@ prompt = PromptTemplate(
     input_variables=["chat_history", "human_input"], template=template
 )
 
-import os
+# Initialize chat ID
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = str(uuid.uuid4())
 
 redis_conn_string = os.environ.get("REDIS_CONN_STRING")
 
-redis_chat_memory = RedisChatMessageHistory(url=redis_conn_string,session_id="42")
+redis_chat_memory = RedisChatMessageHistory(url=redis_conn_string,session_id=st.session_state.chat_id)
 memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=redis_chat_memory, ai_prefix="\n\nAssistant", human_prefix="\n\nHuman")
 
-st.title("Echo Bot")
+st.title("Streamlit chatbot")
+st.caption("Powered by Amazon Bedrock, Langchain and Redis")
 
 llm = Bedrock(
-        #credentials_profile_name="default",
         model_id="anthropic.claude-v2",
         streaming=True,
     )
@@ -34,25 +38,18 @@ llm_chain = LLMChain(
     memory=memory,
 )
 
-# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat messages from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# React to user input
-if prompt := st.chat_input("What is up?"):
-    # Display user message in chat message container
+if prompt := st.chat_input("Enter your message"):
     st.chat_message("user").markdown(prompt)
-    # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     response = llm_chain.predict(human_input=prompt)
-    # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(response)
-    # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

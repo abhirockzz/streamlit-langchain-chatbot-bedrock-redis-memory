@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-chat
+  labels:
+    app: streamlit-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: streamlit-chat
+  template:
+    metadata:
+      labels:
+        app: streamlit-chat
+    spec:
+      containers:
+        - name: streamlit-chat
+          image: <enter ECR docker image>
+          imagePullPolicy: Always
+          env:
+            - name: REDIS_CONN_STRING
+              value: rediss://<Elasticache username>:<Elasticache password>@<enter Elasticache endpoint>/0
+          ports:
+            - containerPort: 8501
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+              scheme: HTTP
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+              scheme: HTTP
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 745Mi
